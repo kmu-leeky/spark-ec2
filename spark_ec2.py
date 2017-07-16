@@ -909,7 +909,7 @@ def is_ssh_available(host, opts, print_ssh_output=True):
     Check if SSH is available on a host.
     """
     s = subprocess.Popen(
-        ssh_command(opts) + ['-t', '-t', '-o', 'ConnectTimeout=3',
+        ssh_command(opts) + ['-t', '-t', '-o', 'ConnectTimeout=10',
                              '%s@%s' % (opts.user, host), stringify_command('true')],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT  # we pipe stderr through stdout to preserve output order
