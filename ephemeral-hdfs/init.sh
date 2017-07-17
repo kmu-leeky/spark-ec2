@@ -31,11 +31,11 @@ case "$HADOOP_MAJOR_VERSION" in
     ;;
   yarn)
 #    wget http://s3.amazonaws.com/spark-related-packages/hadoop-2.7.0.tar.gz
-    wget http://apache.mirror.cdnetworks.com/hadoop/common/hadoop-2.8.0/hadoop-2.8.0.tar.gz
-    echo "Unpacking Hadoop"
-    tar xvzf hadoop-*.tar.gz > /tmp/spark-ec2_hadoop.log
-    rm hadoop-*.tar.gz
-    mv hadoop-2.8.0/ ephemeral-hdfs/
+#    wget http://apache.mirror.cdnetworks.com/hadoop/common/hadoop-2.8.0/hadoop-2.8.0.tar.gz
+#    echo "Unpacking Hadoop"
+#    tar xvzf hadoop-*.tar.gz > /tmp/spark-ec2_hadoop.log
+#    rm hadoop-*.tar.gz
+#    mv hadoop-2.8.0/ ephemeral-hdfs/
 
     # Have single conf dir
     rm -rf /root/ephemeral-hdfs/etc/hadoop/
