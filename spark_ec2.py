@@ -470,7 +470,8 @@ EC2_INSTANCE_TYPES = {
     "t2.small":    "hvm",
     "t2.medium":   "hvm",
     "t2.large":    "hvm",
-    "t2.xlarge":   "hvm"
+    "t2.xlarge":   "hvm",
+    "t2.2xlarge":  "hvm"
 }
 
 
@@ -491,7 +492,7 @@ def get_spark_ami(opts):
         r=opts.spark_ec2_git_repo.replace("https://github.com", "https://raw.github.com", 1),
         b=opts.spark_ec2_git_branch)
 
-    ami_path = "%s/%s/%s" % (ami_prefix, opts.region, instance_type)
+    ami_path = "%s/%s/%s" % (ami_prefix, opts.region, opts.instance_type)
     reader = codecs.getreader("ascii")
     try:
         ami = reader(urlopen(ami_path)).read().strip()
