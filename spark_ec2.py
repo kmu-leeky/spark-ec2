@@ -329,6 +329,9 @@ def parse_args():
         "--subnet-id", default=None,
         help="VPC subnet to launch instances in")
     parser.add_option(
+        "--spark-local-dirs", default="/mnt/spark",
+        help="SPARK_LOCAL_DIR where shffule output is written")
+    parser.add_option(
         "--vpc-id", default=None,
         help="VPC to launch instances in")
     parser.add_option(
@@ -1082,7 +1085,7 @@ def deploy_files(conn, root_dir, opts, master_nodes, slave_nodes, modules):
     num_disks = get_num_disks(opts.instance_type)
     hdfs_data_dirs = "/mnt/ephemeral-hdfs/data"
     mapred_local_dirs = "/mnt/hadoop/mrlocal"
-    spark_local_dirs = "/mnt/spark"
+    spark_local_dirs = opts.spark_local_dirs
     if num_disks > 1:
         for i in range(2, num_disks + 1):
             hdfs_data_dirs += ",/mnt%d/ephemeral-hdfs/data" % i
