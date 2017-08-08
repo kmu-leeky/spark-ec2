@@ -901,12 +901,12 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
 
 
 def setup_spark_cluster(master, opts):
-    ssh(master, opts, "chmod u+x spark-ec2/create_image.sh")
-    ssh(master, opts, "spark-ec2/create_image.sh > spark-ec2/create_image_master.log")
-    for slave in slave_nodes:
-	slave_address = get_dns_name(slave, opts.private_ips)
-	ssh(slave_address, opts, "chmod u+x ./create_image.sh")
-	ssh(slave_address, opts, "spark-ec2/create_image.sh > spark-ec2/create_image_slave.log")
+    #ssh(master, opts, "chmod u+x spark-ec2/create_image.sh")
+    #ssh(master, opts, "spark-ec2/create_image.sh > spark-ec2/create_image_master.log")
+    #for slave in slave_nodes:
+	#slave_address = get_dns_name(slave, opts.private_ips)
+	#ssh(slave_address, opts, "chmod u+x ./create_image.sh")
+	#ssh(slave_address, opts, "spark-ec2/create_image.sh > spark-ec2/create_image_slave.log")
     ssh(master, opts, "chmod u+x spark-ec2/setup.sh")
     ssh(master, opts, "spark-ec2/setup.sh")
     print("Spark standalone cluster started at http://%s:8080" % master)
