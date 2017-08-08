@@ -10,12 +10,14 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
+yum update -y
 # Dev tools
 sudo yum install -y java-1.8.0-openjdk-devel gcc gcc-c++ ant git
 # Perf tools
 sudo yum install -y dstat iotop strace sysstat htop perf
 sudo debuginfo-install -q -y glibc
 sudo debuginfo-install -q -y kernel
+yum install -y kernel-devel-`uname -r`
 sudo yum --enablerepo='*-debug*' install -q -y java-1.8.0-openjdk-debuginfo.x86_64
 
 # PySpark and MLlib deps
@@ -26,6 +28,24 @@ sudo yum install -y R
 sudo yum install -y pssh
 # Ganglia
 sudo yum install -y ganglia ganglia-web ganglia-gmond ganglia-gmetad
+
+# CUDA
+sudo yum install -y gcc-c++
+# Install NVIDIA Driver
+sudo wget -P /root -q http://us.download.nvidia.com/XFree86/Linux-x86_64/367.106/NVIDIA-Linux-x86_64-367.106.run
+sudo chmod +x /root/NVIDIA-Linux-x86_64-367.106.run
+sudo /root/NVIDIA-Linux-x86_64-367.106.run -s > /root/driver.log 2>&1
+# Install CUDA (without driver installation... for Amazon Linux 2015.09)
+#sudo wget -P /root -q http://developer.download.nvidia.com/compute/cuda/7_0/Prod/local_installers/cuda_7.0.28_linux.run
+sudo wget -P /root -q https://developer.nvidia.com/compute/cuda/8.0/Prod2/local_installers/cuda_8.0.61_375.26_linux-run
+#sudo chmod +x /root/cuda_7.0.28_linux.run
+sudo chmod +x cuda_8.0.61_375.26_linux-run
+#sudo /root/cuda_7.0.28_linux.run -extract=/root
+sudo /cuda_8.0.61_375.26_linux-run -extract=/root
+#sudo /root/cuda-linux64-rel-7.0.28-19326674.run -noprompt > /root/cuda.log 2>&1
+sudo /root/cuda-linux64-rel-8.0.61-21551265.run -noprompt > /root/cuda.log 2>&1
+rm -f *.run
+
 
 # Root ssh config
 sudo sed -i 's/PermitRootLogin.*/PermitRootLogin without-password/g' \
@@ -57,6 +77,9 @@ echo "export PS1=\"\\u@\\h \\W]\\$ \"" >> ~/.bash_profile
 echo "export JAVA_HOME=/usr/lib/jvm/java-1.8.0" >> ~/.bash_profile
 echo "export M2_HOME=/opt/apache-maven-3.2.3" >> ~/.bash_profile
 echo "export PATH=\$PATH:\$M2_HOME/bin:/root/spark/bin:/root/ephemeral-hdfs/bin" >> ~/.bash_profile
+echo "export M2_HOME=/opt/hadoop-2.8.0" >> ~/.bash_profile
+echo "export PATH=/usr/local/cuda/bin:\$PATH:\$M2_HOME/bin" >> ~/.bash_profile
+echo "export LD_LIBRARY_PATH=/usr/local/cuda/lib64" >> ~/.bash_profile
 
 source ~/.bash_profile
 
@@ -80,6 +103,9 @@ ln -sf /usr/lib64/libsnappy.so.1 /root/hadoop-native/.
 echo '#!/bin/bash' > /usr/bin/realpath
 echo 'readlink -e "$@"' >> /usr/bin/realpath
 chmod a+x /usr/bin/realpath
+
+mkdir -p /tmp/spark-events
+chmod 777 /tmp/spark-events
 
 # install OpenBlas for fast mllib execution
 git clone https://github.com/xianyi/OpenBlas.git

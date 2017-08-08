@@ -112,7 +112,7 @@ DEFAULT_SPARK_GITHUB_REPO = "https://github.com/apache/spark"
 
 # Default location to get the spark-ec2 scripts (and ami-list) from
 DEFAULT_SPARK_EC2_GITHUB_REPO = "https://github.com/kmu-leeky/spark-ec2"
-DEFAULT_SPARK_EC2_BRANCH = "branch-2.0"
+DEFAULT_SPARK_EC2_BRANCH = "branch-gpu"
 
 
 def setup_external_libs(libs):
@@ -901,6 +901,12 @@ def setup_cluster(conn, master_nodes, slave_nodes, opts, deploy_ssh_key):
 
 
 def setup_spark_cluster(master, opts):
+    ssh(master, opts, "chmod u+x ./create_image.sh")
+    ssh(master, opts, "./create_image.sh > ./create_image_master.log")
+    for slave in slave_nodes:
+	slave_address = get_dns_name(slave, opts.private_ips)
+	ssh(slave_address, opts, "chmod u+x ./create_image.sh")
+	ssh(slave_address, opts, "./create_image.sh > ./create_image_slave.log")
     ssh(master, opts, "chmod u+x spark-ec2/setup.sh")
     ssh(master, opts, "spark-ec2/setup.sh")
     print("Spark standalone cluster started at http://%s:8080" % master)
