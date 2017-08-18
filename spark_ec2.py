@@ -706,7 +706,8 @@ def launch_cluster(conn, opts, cluster_name):
         for zone in zones:
             num_slaves_this_zone = get_partition(opts.slaves, num_zones, i)
             if num_slaves_this_zone > 0:
-                slave_res = image.run(
+                slave_res = conn.run_instances(
+                    image_id=str(image).split(":")[1],
                     key_name=opts.key_pair,
                     security_group_ids=[slave_group.id] + additional_group_ids,
                     instance_type=opts.instance_type,
@@ -718,7 +719,8 @@ def launch_cluster(conn, opts, cluster_name):
                     placement_group=opts.placement_group,
                     user_data=user_data_content,
                     instance_initiated_shutdown_behavior=opts.instance_initiated_shutdown_behavior,
-                    instance_profile_name=opts.instance_profile_name)
+                    instance_profile_name=opts.instance_profile_name,
+                    ebs_optimized=True)
                 slave_nodes += slave_res.instances
                 print("Launched {s} slave{plural_s} in {z}, regid = {r}".format(
                       s=num_slaves_this_zone,
@@ -740,7 +742,8 @@ def launch_cluster(conn, opts, cluster_name):
             master_type = opts.instance_type
         if opts.zone == 'all':
             opts.zone = random.choice(conn.get_all_zones()).name
-        master_res = image.run(
+        master_res = conn.run_instances(
+            image_id=str(image).split(":")[1],
             key_name=opts.key_pair,
             security_group_ids=[master_group.id] + additional_group_ids,
             instance_type=master_type,
@@ -752,7 +755,8 @@ def launch_cluster(conn, opts, cluster_name):
             placement_group=opts.placement_group,
             user_data=user_data_content,
             instance_initiated_shutdown_behavior=opts.instance_initiated_shutdown_behavior,
-            instance_profile_name=opts.instance_profile_name)
+            instance_profile_name=opts.instance_profile_name,
+            ebs_optimized=True)
 
         master_nodes = master_res.instances
         print("Launched master in %s, regid = %s" % (zone, master_res.id))
