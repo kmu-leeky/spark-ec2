@@ -31,3 +31,11 @@ sleep 20
 
 # Start Workers
 $BIN_FOLDER/start-slaves.sh
+
+# Create log directory
+hdfs dfs -mkdir /spark-logs
+hdfs dfs -chmod 777 /spark-logs
+
+sleep 2
+# start history server
+ $BIN_FOLDER/start-history-server.sh
