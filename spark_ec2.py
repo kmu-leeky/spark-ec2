@@ -278,7 +278,7 @@ def parse_args():
         "--swap", metavar="SWAP", type="int", default=1024,
         help="Swap space to set up per node, in MB (default: %default)")
     parser.add_option(
-        "--spot-price", metavar="PRICE", type="float",
+        "--spot-price", metavar="PRICE", type="float", default=1.0,
         help="If specified, launch slaves as spot instances with the given " +
              "maximum price (in dollars)")
     parser.add_option(
@@ -477,10 +477,59 @@ EC2_INSTANCE_TYPES = {
     "t2.2xlarge":  "hvm"
 }
 
+# As of Sep. 18th. 2017. on-demand in uw-west-2 
+# It is good to parse from AWS website, but the input file is too large to download every time.
+# Just keep it simple.
+EC2_INSTANCE_PRICE = {
+    "t2.small":    0.023,
+    "t2.medium":   0.047,
+    "t2.large":    0.094,
+    "t2.xlarge":   0.188,
+    "t2.2xlarge":  0.376,
+    "m4.large":    0.1,
+    "m4.xlarge":   0.2,
+    "m4.2xlarge":  0.4,
+    "m4.4xlarge":  0.8,
+    "m4.10xlarge": 2.0,
+    "m4.16xlarge": 3.2,
+    "c4.large":    0.1,
+    "c4.xlarge":   0.199,
+    "c4.2xlarge":  0.398,
+    "c4.4xlarge":  0.796,
+    "c4.8xlarge":  1.591,
+    "p2.xlarge":   0.9,
+    "p2.8xlarge":  7.2,
+    "p2.16xlarge": 14.4,
+    "g2.2xlarge":  0.65,
+    "g2.8xlarge":  2.6,
+    "g3.4xlarge":  1.14,
+    "g3.8xlarge":  2.28,
+    "g3.16xlarge": 4.56,
+    "f1.2xlarge":  1.65,
+    "f1.16xlarge": 13.2,
+    "x1.16xlarge": 6.669,
+    "x1.32xlarge": 13.338,
+    "r4.large":    0.133,
+    "r4.xlarge":   0.266,
+    "r4.2xlarge":  0.532,
+    "r4.4xlarge":  1.064,
+    "r4.8xlarge":  2.128,
+    "r4.16xlarge": 4.256,
+    "i3.large":    0.156,
+    "i3.xlarge":   0.312,
+    "i3.2xlarge":  0.624,
+    "i3.4xlarge":  1.248,
+    "i3.8xlarge":  2.496,
+    "i3.16xlarge": 4.992
+}
 
 def get_tachyon_version(spark_version):
     return SPARK_TACHYON_MAP.get(spark_version, "")
 
+def get_instance_price(instance_type):
+    if not instance_type in EC2_INSTANCE_PRICE:
+        raise ValueError("%s price in not in the EC2_INSTANCE_PRICE map. Add it first" % instance_type)
+    return EC2_INSTANCE_PRICE.get(instance_type)
 
 # Attempt to resolve an appropriate AMI given the architecture and region of the request.
 def get_spark_ami(opts):
@@ -640,8 +689,11 @@ def launch_cluster(conn, opts, cluster_name):
     # Launch slaves
     if opts.spot_price is not None:
         # Launch spot instances with the requested price
+        ondemand_price = get_instance_price(opts.instance_type)
+        bid_spot_price = ondemand_price if opts.spot_price > ondemand_price else ondemand_price
         print("Requesting %d slaves as spot instances with price $%.3f" %
-              (opts.slaves, opts.spot_price))
+              (opts.slaves, bid_spot_price))
+
         zones = get_zones(conn, opts)
         num_zones = len(zones)
         i = 0
@@ -649,7 +701,7 @@ def launch_cluster(conn, opts, cluster_name):
         for zone in zones:
             num_slaves_this_zone = get_partition(opts.slaves, num_zones, i)
             slave_reqs = conn.request_spot_instances(
-                price=opts.spot_price,
+                price=bid_spot_price,
                 image_id=opts.ami,
                 launch_group="launch-group-%s" % cluster_name,
                 placement=zone,
@@ -706,7 +758,8 @@ def launch_cluster(conn, opts, cluster_name):
         for zone in zones:
             num_slaves_this_zone = get_partition(opts.slaves, num_zones, i)
             if num_slaves_this_zone > 0:
-                slave_res = image.run(
+                slave_res = conn.run_instances(
+                    image_id=str(image).split(":")[1],
                     key_name=opts.key_pair,
                     security_group_ids=[slave_group.id] + additional_group_ids,
                     instance_type=opts.instance_type,
@@ -718,7 +771,8 @@ def launch_cluster(conn, opts, cluster_name):
                     placement_group=opts.placement_group,
                     user_data=user_data_content,
                     instance_initiated_shutdown_behavior=opts.instance_initiated_shutdown_behavior,
-                    instance_profile_name=opts.instance_profile_name)
+                    instance_profile_name=opts.instance_profile_name,
+                    ebs_optimized=True)
                 slave_nodes += slave_res.instances
                 print("Launched {s} slave{plural_s} in {z}, regid = {r}".format(
                       s=num_slaves_this_zone,
@@ -740,7 +794,8 @@ def launch_cluster(conn, opts, cluster_name):
             master_type = opts.instance_type
         if opts.zone == 'all':
             opts.zone = random.choice(conn.get_all_zones()).name
-        master_res = image.run(
+        master_res = conn.run_instances(
+            image_id=str(image).split(":")[1],
             key_name=opts.key_pair,
             security_group_ids=[master_group.id] + additional_group_ids,
             instance_type=master_type,
@@ -752,7 +807,8 @@ def launch_cluster(conn, opts, cluster_name):
             placement_group=opts.placement_group,
             user_data=user_data_content,
             instance_initiated_shutdown_behavior=opts.instance_initiated_shutdown_behavior,
-            instance_profile_name=opts.instance_profile_name)
+            instance_profile_name=opts.instance_profile_name,
+            ebs_optimized=True)
 
         master_nodes = master_res.instances
         print("Launched master in %s, regid = %s" % (zone, master_res.id))
