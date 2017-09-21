@@ -477,7 +477,7 @@ EC2_INSTANCE_TYPES = {
     "t2.2xlarge":  "hvm"
 }
 
-# As of Sep. 18th. 2017. on-demand in uw-west-2 
+# As of Sep. 18th. 2017. on-demand in uw-west-2
 # It is good to parse from AWS website, but the input file is too large to download every time.
 # Just keep it simple.
 EC2_INSTANCE_PRICE = {
@@ -709,7 +709,7 @@ def launch_cluster(conn, opts, cluster_name):
                 key_name=opts.key_pair,
                 security_group_ids=[slave_group.id] + additional_group_ids,
                 instance_type=opts.instance_type,
-                block_device_map=block_map,
+                block_device_map=[{"DeviceName": "/dev/xvda","Ebs" : { "VolumeSize" : 50 }}],
                 subnet_id=opts.subnet_id,
                 placement_group=opts.placement_group,
                 user_data=user_data_content,
