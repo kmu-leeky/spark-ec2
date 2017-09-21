@@ -700,6 +700,12 @@ def launch_cluster(conn, opts, cluster_name):
         my_req_ids = []
         for zone in zones:
             num_slaves_this_zone = get_partition(opts.slaves, num_zones, i)
+            block_map = BlockDeviceMapping()
+            device = EBSBlockDeviceType();
+            device.size=64G
+            device.volume_type="ebs"
+            device.delete_on_termination= True
+            block_map["/dev/xvda"]=device
             slave_reqs = conn.request_spot_instances(
                 price=bid_spot_price,
                 image_id=opts.ami,
@@ -709,7 +715,7 @@ def launch_cluster(conn, opts, cluster_name):
                 key_name=opts.key_pair,
                 security_group_ids=[slave_group.id] + additional_group_ids,
                 instance_type=opts.instance_type,
-                block_device_map=[{"DeviceName": "/dev/xvda","Ebs" : { "VolumeSize" : 50 }}],
+                block_device_map=block_map,
                 subnet_id=opts.subnet_id,
                 placement_group=opts.placement_group,
                 user_data=user_data_content,
