@@ -720,7 +720,7 @@ def launch_cluster(conn, opts, cluster_name):
                 placement_group=opts.placement_group,
                 user_data=user_data_content,
                 instance_profile_name=opts.instance_profile_name,
-                ebs_optimized=False)
+                ebs_optimized=True)
             my_req_ids += [req.id for req in slave_reqs]
             i += 1
 
