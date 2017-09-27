@@ -719,7 +719,8 @@ def launch_cluster(conn, opts, cluster_name):
                 subnet_id=opts.subnet_id,
                 placement_group=opts.placement_group,
                 user_data=user_data_content,
-                instance_profile_name=opts.instance_profile_name)
+                instance_profile_name=opts.instance_profile_name,
+                ebs_optimized=False)
             my_req_ids += [req.id for req in slave_reqs]
             i += 1
 
