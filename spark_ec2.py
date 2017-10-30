@@ -477,7 +477,7 @@ EC2_INSTANCE_TYPES = {
     "t2.2xlarge":  "hvm"
 }
 
-# As of Sep. 18th. 2017. on-demand in uw-west-2 
+# As of Sep. 18th. 2017. on-demand in uw-west-2
 # It is good to parse from AWS website, but the input file is too large to download every time.
 # Just keep it simple.
 EC2_INSTANCE_PRICE = {
@@ -700,6 +700,12 @@ def launch_cluster(conn, opts, cluster_name):
         my_req_ids = []
         for zone in zones:
             num_slaves_this_zone = get_partition(opts.slaves, num_zones, i)
+            block_map = BlockDeviceMapping()
+            device = EBSBlockDeviceType();
+            device.size='64'
+            device.volume_type="standard"
+            device.delete_on_termination= True
+            block_map["/dev/xvda"]=device
             slave_reqs = conn.request_spot_instances(
                 price=bid_spot_price,
                 image_id=opts.ami,
