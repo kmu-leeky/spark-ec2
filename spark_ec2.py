@@ -702,7 +702,7 @@ def launch_cluster(conn, opts, cluster_name):
             num_slaves_this_zone = get_partition(opts.slaves, num_zones, i)
             block_map = BlockDeviceMapping()
             device = EBSBlockDeviceType();
-            device.size='64'
+            device.size='128'
             device.volume_type="standard"
             device.delete_on_termination= True
             block_map["/dev/xvda"]=device
