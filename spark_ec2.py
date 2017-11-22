@@ -474,7 +474,13 @@ EC2_INSTANCE_TYPES = {
     "t2.medium":   "hvm",
     "t2.large":    "hvm",
     "t2.xlarge":   "hvm",
-    "t2.2xlarge":  "hvm"
+    "t2.2xlarge":  "hvm",
+    "i3.large":    "hvm",
+    "i3.xlarge":   "hvm",
+    "i3.2xlarge":  "hvm",
+    "i3.4xlarge":  "hvm",
+    "i3.8xlarge":  "hvm",
+    "i3.16xlarge": "hvm"
 }
 
 # As of Sep. 18th. 2017. on-demand in uw-west-2 
