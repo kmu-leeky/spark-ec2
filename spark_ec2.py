@@ -681,7 +681,7 @@ def launch_cluster(conn, opts, cluster_name):
             device.size = opts.ebs_vol_size
             device.volume_type = opts.ebs_vol_type
             device.delete_on_termination = True
-            block_map["/dev/sd" + chr(ord('s') + i)] = device
+            block_map["/dev/xvda"] = device
 
     # AWS ignores the AMI-specified block device mapping for M3 (see SPARK-3342).
     if opts.instance_type.startswith('m3.'):
