@@ -681,7 +681,7 @@ def launch_cluster(conn, opts, cluster_name):
             device.size = opts.ebs_vol_size
             device.volume_type = opts.ebs_vol_type
             device.delete_on_termination = True
-            block_map["/dev/xvda"] = device
+            block_map["/dev/sd" + chr(ord('s') + i)] = device
 
     # AWS ignores the AMI-specified block device mapping for M3 (see SPARK-3342).
     if opts.instance_type.startswith('m3.'):
@@ -706,6 +706,12 @@ def launch_cluster(conn, opts, cluster_name):
         my_req_ids = []
         for zone in zones:
             num_slaves_this_zone = get_partition(opts.slaves, num_zones, i)
+            block_map = BlockDeviceMapping()
+            device = EBSBlockDeviceType();
+            device.size = '64'
+            device.volume_type = "standard"
+            device.delete_on_termination = True
+            block_map["/dev/xvda"] = device
             slave_reqs = conn.request_spot_instances(
                 price=bid_spot_price,
                 image_id=opts.ami,
