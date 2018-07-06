@@ -1,7 +1,7 @@
 #!/bin/bash
-# Creates an AMI for the Spark EC2 scripts starting with a stock Amazon 
+# Creates an AMI for the Spark EC2 scripts starting with a stock Amazon
 # Linux AMI.
-# This has only been tested with Amazon Linux AMI 2014.03.2 
+# This has only been tested with Amazon Linux AMI 2014.03.2
 
 set -e
 
@@ -11,7 +11,7 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 # Dev tools
-sudo yum install -y java-1.8.0-openjdk-devel gcc gcc-c++ ant git
+sudo yum install -y java-1.8.0-openjdk-devel gcc gcc-c++ ant cmake
 # Perf tools
 sudo yum install -y dstat iotop strace sysstat htop perf
 sudo debuginfo-install -q -y glibc
@@ -46,55 +46,18 @@ for x in {1..23}; do
     "\"defaults,noatime\", \"0\", \"0\" ]" >> /etc/cloud/cloud.cfg
 done
 
-# Install Maven (for Hadoop)
-cd /tmp
-wget "http://archive.apache.org/dist/maven/maven-3/3.2.3/binaries/apache-maven-3.2.3-bin.tar.gz"
-tar xvzf apache-maven-3.2.3-bin.tar.gz
-mv apache-maven-3.2.3 /opt/
+# Edit bash file
+echo "export PS1=\"\\u@\\h \\W]\\$ \"" >> /root/.bash_profile
+echo "export JAVA_HOME=/usr/lib/jvm/java-1.8.0" >> /root/.bash_profile
+echo "export M2_HOME=/usr/local/maven/" >> /root/.bash_profile
+echo "export PROTOC=/usr/local/bin/protoc" >> /root/.bash_profile
+echo "export PATH=\$PATH:/usr/local/bin:\$M2_HOME/bin:/root/spark/bin:/root/ephemeral-hdfs/bin" >> /root/.bash_profile
 
-# Edit bash profile
-echo "export PS1=\"\\u@\\h \\W]\\$ \"" >> ~/.bash_profile
-echo "export JAVA_HOME=/usr/lib/jvm/java-1.8.0" >> ~/.bash_profile
-echo "export M2_HOME=/opt/apache-maven-3.2.3" >> ~/.bash_profile
-echo "export PATH=\$PATH:\$M2_HOME/bin:/root/spark/bin:/root/ephemeral-hdfs/bin" >> ~/.bash_profile
-
-source ~/.bash_profile
-
-# Build Hadoop to install native libs
-sudo mkdir /root/hadoop-native
-cd /tmp
-sudo yum install -y protobuf-compiler cmake openssl-devel
-wget "http://apache.mirror.cdnetworks.com/hadoop/common/hadoop-2.8.0/hadoop-2.8.0-src.tar.gz"
-tar xvzf hadoop-2.8.0-src.tar.gz
-cd hadoop-2.8.0-src
-mvn package -Pdist,native -DskipTests -Dtar
-sudo mv hadoop-dist/target/hadoop-2.8.0/lib/native/* /root/hadoop-native
-
-# Install Snappy lib (for Hadoop)
-yum install -y snappy
-ln -sf /usr/lib64/libsnappy.so.1 /root/hadoop-native/.
+source /root/.bash_profile
 
 # Create /usr/bin/realpath which is used by R to find Java installations
 # NOTE: /usr/bin/realpath is missing in CentOS AMIs. See
 # http://superuser.com/questions/771104/usr-bin-realpath-not-found-in-centos-6-5
 echo '#!/bin/bash' > /usr/bin/realpath
 echo 'readlink -e "$@"' >> /usr/bin/realpath
-chmod a+x /usr/bin/realpath
-
-# install OpenBlas for fast mllib execution
-git clone https://github.com/xianyi/OpenBlas.git
-cd OpenBlas/
-make clean
-make -j4
-sudo mkdir /usr/lib64/OpenBLAS
-sudo chmod o+w,g+w /usr/lib64/OpenBLAS/
-make PREFIX=/usr/lib64/OpenBLAS install
-sudo rm /etc/ld.so.conf.d/atlas-x86_64.conf
-sudo ldconfig
-sudo ln -sf /usr/lib64/OpenBLAS/lib/libopenblas.so /usr/lib64/libblas.so
-sudo ln -sf /usr/lib64/OpenBLAS/lib/libopenblas.so /usr/lib64/libblas.so.3
-sudo ln -sf /usr/lib64/OpenBLAS/lib/libopenblas.so /usr/lib64/libblas.so.3.5
-sudo ln -sf /usr/lib64/OpenBLAS/lib/libopenblas.so /usr/lib64/liblapack.so
-sudo ln -sf /usr/lib64/OpenBLAS/lib/libopenblas.so /usr/lib64/liblapack.so.3
-sudo ln -sf /usr/lib64/OpenBLAS/lib/libopenblas.so /usr/lib64/liblapack.so.3.5
-cd ..
+chmod a+x /usr/bin/realpath`
