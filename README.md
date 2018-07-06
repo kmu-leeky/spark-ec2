@@ -95,6 +95,9 @@ another.
 permissions on your private key file, you can run `launch` with the
 `--resume` option to restart the setup process on an existing cluster.
 
+## Create AWS AMI
+[doc](https://docs.google.com/document/d/1nTqaOnYEUKAo5Htht8vLj5eA5TY5eQpXz5utZLf0e-Q/edit?usp=sharing)
+
 ## Launching a Cluster in a VPC
 
 -   Run
