@@ -431,6 +431,11 @@ EC2_INSTANCE_TYPES = {
     "c4.2xlarge":  "hvm",
     "c4.4xlarge":  "hvm",
     "c4.8xlarge":  "hvm",
+    "c5.large":    "hvm",
+    "c5.2xlarge":  "hvm",
+    "c5.4xlarge":  "hvm",
+    "c5.9xlarge":  "hvm",
+    "c5.18xlarge": "hvm",
     "cc1.4xlarge": "hvm",
     "cc2.8xlarge": "hvm",
     "cg1.4xlarge": "hvm",
@@ -489,7 +494,7 @@ EC2_INSTANCE_TYPES = {
     "r4.16xlarge":  "hvm"
 }
 
-# As of Sep. 18th. 2017. on-demand in uw-west-2
+# As of Sep. 18th. 2017. on-demand in us-west-2
 # It is good to parse from AWS website, but the input file is too large to download every time.
 # Just keep it simple.
 EC2_INSTANCE_PRICE = {
@@ -509,6 +514,12 @@ EC2_INSTANCE_PRICE = {
     "c4.2xlarge":  0.398,
     "c4.4xlarge":  0.796,
     "c4.8xlarge":  1.591,
+    "c5.large": 0.085,
+    "c5.xlarge": 0.17,
+    "c5.2xlarge": 0.34,
+    "c5.4xlarge": 0.68,
+    "c5.9xlarge": 1.53,
+    "c5.18xlarge": 3.06,
     "p2.xlarge":   0.9,
     "p2.8xlarge":  7.2,
     "p2.16xlarge": 14.4,
@@ -573,6 +584,11 @@ def get_spark_ami(opts):
 # Returns a tuple of EC2 reservation objects for the master and slaves
 # Fails if there already instances running in the cluster's groups.
 def launch_cluster(conn, opts, cluster_name):
+    
+    ############################
+    #opts.spot_price = None
+    ############################
+    
     if opts.identity_file is None:
         print("ERROR: Must provide an identity file (-i) for ssh connections.", file=stderr)
         sys.exit(1)
